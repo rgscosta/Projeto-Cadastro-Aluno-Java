@@ -133,7 +133,7 @@ public class AlunoServiceTeste {
 	@Test
 	public void teste6_CalculaMedia() {
 		// Pegando o valor das notas passada e fazendo o calculo do valor da média.
-		double media = aluno.calcularMedia(aluno.getNota1(), aluno.getNota2());
+		double media = aluno.calcularMedia();
 		Assert.assertNotNull(media);
 		Assert.assertEquals(8.0, media, 0.01);
 	}
@@ -142,7 +142,7 @@ public class AlunoServiceTeste {
 	public void teste7_DeterminarSituacao() {
 		// Adicionando o valor da média esperada
 		double media = 8.0;
-		String situacao = aluno.determinarSituacao(aluno.getSituacao(), media);
+		String situacao = aluno.determinarSituacao();
 		Assert.assertNotNull(situacao);
 		Assert.assertEquals("Aprovado", situacao);
 	}
@@ -320,7 +320,7 @@ public class AlunoServiceTeste {
 		String caminhoArquivo = caminhoDiretorio + File.separator + "alunos_cadastrados.txt";
 
 		// Exporta os alunos para o arquivo
-		alunoService.exportarAlunosParaArquivo(null, caminhoDiretorio, null, null);
+		alunoService.exportarAlunosParaArquivo(caminhoDiretorio);
 
 		// Verifica se o arquivo foi criado
 		File arquivo = new File(caminhoArquivo);
@@ -365,7 +365,7 @@ public class AlunoServiceTeste {
 		// Caminho inválido para forçar a falha na criação da pasta
 		String caminhoDiretorio = "Z:/CaminhoInvalido";
 		// Testa se o método trata corretamente a falha na criação da pasta
-		alunoService.exportarAlunosParaArquivo(null, caminhoDiretorio, null, null);
+		alunoService.exportarAlunosParaArquivo(caminhoDiretorio);
 
 	}
 

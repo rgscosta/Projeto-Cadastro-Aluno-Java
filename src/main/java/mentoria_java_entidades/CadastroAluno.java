@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -15,19 +16,6 @@ public class CadastroAluno {
 	static Scanner scanner = new Scanner(System.in);
 	static AlunoService alunoService = new AlunoService();
 
-	// Criando variavel para teste Unitarios
-	static String nomeAlunoTeste;
-	static String dataNascimentoStr;
-	static double notaDigitadaAluno;
-	static String pergunta;
-	static String classeAluno;
-	static String turmaAluno;
-	static double d;
-	static double e;
-	static double mediaAluno;
-	static String situacao;
-	static double media;
-
 	public static void main(String[] args) {
 
 		int opcao;
@@ -35,50 +23,61 @@ public class CadastroAluno {
 		while (true) {
 			System.out.print("************************** Menu de Cadastros **************************\n\n");
 			System.out.println(
-					"- Digite (1) para cadastro de Aluno \n- Digite (2) para consulta de Aluno \n- Digite (3) para alterar cadastro de Aluno \n- Digite (4) para excluir cadastro de Aluno \n- Digite (0) para sair ");
+					"- Digite (1) para cadastro de Aluno \n" +
+							"- Digite (2) para consulta de Aluno \n" +
+							"- Digite (3) para alterar cadastro de Aluno \n" +
+							"- Digite (4) para excluir cadastro de Aluno \n" +
+							"- Digite (0) para sair ");
 			System.out.print("=> ");
+
 			try {
 				opcao = scanner.nextInt();
+				scanner.nextLine(); // consumir o \n
+
 				System.out.print("\n");
-				scanner.nextLine(); // Consumir a nova linha
 
 				switch (opcao) {
-				case 1:
-					cadastro();
-					break;
-				case 2:
-					consulta();
-					break;
-				case 3:
-					alterar();
-					break;
-				case 4:
-					excluir();
-					break;
-				case 0:
-					System.out.println("Saindo do menu de cadastro!");
-					scanner.close();
-					return;
-				default:
-					System.out.println("Opção inválida. Por favor, digite uma opção válida.");
+					case 1:
+						cadastro();
+						break;
+					case 2:
+						consulta();
+						break;
+					case 3:
+						alterar();
+						break;
+					case 4:
+						excluir();
+						break;
+					case 0:
+						System.out.println("Saindo do menu de cadastro!");
+						scanner.close();
+						return;
+					default:
+						System.out.println("Opção inválida. Por favor, digite uma opção válida.");
 				}
-			} catch (Exception e) {
+
+			} catch (InputMismatchException e) {
 				System.out.println("Entrada inválida. Por favor, digite um número.");
-				scanner.nextLine(); // Consumir a entrada inválida
+				scanner.nextLine(); // consumir a entrada inválida
+			} catch (Exception e) {
+				// Evita mascarar erro real como se fosse erro de input
+				System.out.println("Ocorreu um erro: " + e.getMessage());
 			}
 		}
 	}
 
+	// ========================= CADASTRO =========================
+
 	public static void cadastro() {
 
-		String nomeAluno = "";
+		String nomeAluno;
 		LocalDate dataNascimento;
 
 		while (true) {
-			// Cadastrar o Nome do Aluno Novo;
-			nomeAluno = cadastrarNomeAluno(nomeAlunoTeste);
-			// Cadastrar a Data de Nascimento do Aluno Novo;
-			dataNascimento = cadastrarDataNascimento(dataNascimentoStr);
+			// Agora pede input no console (não passa null)
+			nomeAluno = cadastrarNomeAluno(null);
+			dataNascimento = cadastrarDataNascimento(null);
 
 			// Verificar duplicidade de aluno com base no nome e data de nascimento
 			if (alunoService.verificarAlunoCadastrado(nomeAluno, dataNascimento)) {
@@ -88,44 +87,55 @@ public class CadastroAluno {
 			}
 		}
 
-		// Cadastrar as Notas
-		double nota1 = cadastrarNota("Digite a nota 1 (entre 0 e 10): ", notaDigitadaAluno);
-		double nota2 = cadastrarNota("Digite a nota 2 (entre 0 e 10): ", notaDigitadaAluno);
-		// Cadastrar a Classe
-		Integer classe = cadastrarClasse(classeAluno);
-		// Cadastrar a Turma
-		String turma = cadastrarTurma(turmaAluno);
-		// Construtor com recebendo os dados
+		// Cadastrar as Notas (lendo do console)
+		double nota1 = cadastrarNota("Digite a nota 1 (entre 0 e 10): ", -1);
+		double nota2 = cadastrarNota("Digite a nota 2 (entre 0 e 10): ", -1);
+
+		// Cadastrar a Classe (lendo do console)
+		int classe = cadastrarClasse(null);
+
+		// Cadastrar a Turma (lendo do console)
+		String turma = cadastrarTurma(null);
+
+		// Criar aluno
 		Aluno aluno = new Aluno(nomeAluno, dataNascimento, nota1, nota2, classe, turma);
-		// Calculando a Média
-		// aluno.calcularMedia();
-		aluno.calcularMedia(d, e);
-		// Informando a Situação
-		aluno.determinarSituacao(situacao, media);
-		// Adicionando Aluno no cadastro
+
+		// Compatível com seu Aluno atual: métodos SEM parâmetros
+		aluno.calcularMedia();
+		aluno.determinarSituacao();
+
 		alunoService.cadastrarAluno(aluno);
 
 		System.out.println("Matrícula: " + aluno.getMatricula() + "\n");
 		System.out.println("Aluno cadastrado com Sucesso.\n");
 	}
 
-	public static String cadastrarNomeAluno(String nomeAluno) {
-		boolean teste = true;
-		while (teste) {
-			try {
-				if (nomeAluno.matches("[A-Za-zÀ-ú ]+")) {
-					return nomeAluno;
-				} else {
-					teste = false;
-					throw new NomeInvalidoException(
-							"\nNome inválido. Por favor, digite um nome que contenha apenas letras. \n");
+	// ========================= VALIDADORES =========================
 
+	/**
+	 * Mantém a assinatura original, mas se vier null/inválido,
+	 * lê do console até ficar válido.
+	 */
+	public static String cadastrarNomeAluno(String nomeAluno) {
+		while (true) {
+			try {
+				if (nomeAluno == null || nomeAluno.trim().isEmpty()) {
+					System.out.print("Digite o nome do aluno: ");
+					nomeAluno = scanner.nextLine();
 				}
+
+				if (nomeAluno.matches("[A-Za-zÀ-ú ]+")) {
+					return nomeAluno.trim();
+				} else {
+					throw new NomeInvalidoException(
+							"\nNome inválido. Por favor, digite um nome que contenha apenas letras.\n");
+				}
+
 			} catch (NomeInvalidoException e) {
 				System.out.println(e.getMessage());
+				nomeAluno = null; // força pedir de novo
 			}
 		}
-		return nomeAluno;
 	}
 
 	public static LocalDate cadastrarDataNascimento(String dataNascimentoStr) {
@@ -133,6 +143,11 @@ public class CadastroAluno {
 		Pattern datePattern = Pattern.compile("\\d{2}/\\d{2}/\\d{4}");
 
 		while (true) {
+			if (dataNascimentoStr == null || dataNascimentoStr.trim().isEmpty()) {
+				System.out.print("Digite a data de nascimento (dd/MM/yyyy): ");
+				dataNascimentoStr = scanner.nextLine();
+			}
+
 			if (datePattern.matcher(dataNascimentoStr).matches()) {
 				try {
 					LocalDate dataNascimento = LocalDate.parse(dataNascimentoStr, formatter);
@@ -140,12 +155,15 @@ public class CadastroAluno {
 						return dataNascimento;
 					} else {
 						System.out.println("Ano inválido. Por favor, digite um ano a partir de 1900.");
+						dataNascimentoStr = null;
 					}
 				} catch (DateTimeParseException e) {
 					System.out.println("Data inválida. Por favor, digite no formato dd/MM/yyyy.");
+					dataNascimentoStr = null;
 				}
 			} else {
 				System.out.println("Data inválida. Por favor, digite no formato dd/MM/yyyy.");
+				dataNascimentoStr = null;
 			}
 		}
 	}
@@ -153,14 +171,24 @@ public class CadastroAluno {
 	public static double cadastrarNota(String pergunta, double notaDigitadaAluno) {
 		while (true) {
 			try {
-				double nota = notaDigitadaAluno;
+				double nota;
+
+				if (notaDigitadaAluno >= 0 && notaDigitadaAluno <= 10) {
+					return notaDigitadaAluno;
+				}
+
+				System.out.print(pergunta);
+				nota = scanner.nextDouble();
+				scanner.nextLine(); // consumir \n
+
 				if (nota >= 0 && nota <= 10) {
 					return nota;
 				} else {
 					System.out.println("Nota inválida. Por favor, digite uma nota entre 0 e 10.");
 				}
-			} catch (NumberFormatException e) {
-				System.out.println("Entrada inválida. Por favor, digite um número.");
+			} catch (InputMismatchException e) {
+				System.out.println("Entrada inválida. Por favor, digite um número (ex: 8.5).");
+				scanner.nextLine();
 			}
 		}
 	}
@@ -168,37 +196,52 @@ public class CadastroAluno {
 	public static int cadastrarClasse(String classeAluno) {
 		while (true) {
 			try {
-				// Remover o símbolo de grau, se presente
-				classeAluno.replace("º", "").trim();
+				if (classeAluno == null || classeAluno.trim().isEmpty()) {
+					System.out.print("Digite a classe (1º a 9º): ");
+					classeAluno = scanner.nextLine();
+				}
+
+				// CORREÇÃO: precisa atribuir o replace
+				classeAluno = classeAluno.replace("º", "").trim();
+
 				int classe = Integer.parseInt(classeAluno);
 
 				if (classe >= 1 && classe <= 9) {
 					return classe;
 				} else {
 					System.out.println("Classe inválida. Por favor, digite uma classe entre 1º e 9º.");
+					classeAluno = null;
 				}
 			} catch (NumberFormatException e) {
 				System.out.println("Entrada inválida. Por favor, digite um número válido.");
+				classeAluno = null;
 			}
 		}
 	}
 
 	public static String cadastrarTurma(String turmaAluno) {
 		while (true) {
-			String turma = turmaAluno;
 			try {
+				if (turmaAluno == null || turmaAluno.trim().isEmpty()) {
+					System.out.print("Digite a turma (uma letra): ");
+					turmaAluno = scanner.nextLine();
+				}
+
+				String turma = turmaAluno.trim();
+
 				if (turma.matches("[A-Za-zÀ-ú]") && turma.length() == 1) {
-					// Transformar a letra em maiúscula
-					turma = turma.toUpperCase();
-					return turma;
+					return turma.toUpperCase();
 				} else {
 					throw new TurmaInvalidaException("Turma inválida. Por favor, digite apenas uma letra.");
 				}
 			} catch (TurmaInvalidaException e) {
 				System.out.println(e.getMessage());
+				turmaAluno = null;
 			}
 		}
 	}
+
+	// ========================= CONSULTA =========================
 
 	public static void consulta() {
 		while (true) {
@@ -210,64 +253,94 @@ public class CadastroAluno {
 			System.out.println("Digite (4) para exportar todos os alunos para um arquivo");
 			System.out.println("Digite (0) para finalizar consulta");
 			System.out.print("=> ");
-			int consultaOpcao = scanner.nextInt();
-			scanner.nextLine(); // Consumir a nova linha
+
+			int consultaOpcao;
+
+			try {
+				consultaOpcao = scanner.nextInt();
+				scanner.nextLine(); // consumir \n
+			} catch (InputMismatchException e) {
+				System.out.println("Entrada inválida. Por favor, digite um número.");
+				scanner.nextLine();
+				continue;
+			}
 
 			switch (consultaOpcao) {
-			case 1:
-				List<Aluno> todosAlunos = alunoService.consultarAlunos();
-				if (todosAlunos.isEmpty()) {
-					System.out.println("\nNenhum aluno cadastrado na base de dados.\n");
-				} else {
-					for (Aluno aluno : todosAlunos) {
-						System.out.println(aluno);
+				case 1:
+					List<Aluno> todosAlunos = alunoService.consultarAlunos();
+					if (todosAlunos.isEmpty()) {
+						System.out.println("\nNenhum aluno cadastrado na base de dados.\n");
+					} else {
+						for (Aluno aluno : todosAlunos) {
+							System.out.println(aluno);
+						}
 					}
-				}
-				break;
-			case 2:
-				System.out.print("Digite a matrícula do aluno: ");
-				int matricula = scanner.nextInt();
-				scanner.nextLine(); // Consumir a nova linha
-				Aluno alunoPorMatricula = alunoService.consultarAlunoPorMatricula(matricula);
-				if (alunoPorMatricula == null) {
-					System.out.println("\nAluno não encontrado.\n");
-				} else {
-					System.out.println(alunoPorMatricula);
-				}
-				break;
-			case 3:
-				System.out.print("Digite o nome do aluno: ");
-				String nome = scanner.nextLine();
-				List<Aluno> alunosPorNome = alunoService.consultarAlunoPorNome(nome);
-				if (alunosPorNome.isEmpty()) {
-					System.out.println("\nAluno não encontrado.\n");
-				} else {
-					for (Aluno aluno : alunosPorNome) {
-						System.out.println(aluno);
+					break;
+
+				case 2:
+					System.out.print("Digite a matrícula do aluno: ");
+					try {
+						int matricula = scanner.nextInt();
+						scanner.nextLine();
+
+						Aluno alunoPorMatricula = alunoService.consultarAlunoPorMatricula(matricula);
+						if (alunoPorMatricula == null) {
+							System.out.println("\nAluno não encontrado.\n");
+						} else {
+							System.out.println(alunoPorMatricula);
+						}
+					} catch (InputMismatchException e) {
+						System.out.println("Entrada inválida. Matrícula deve ser um número.");
+						scanner.nextLine();
 					}
-				}
-				break;
-			case 4:
-				String userHome = System.getProperty("user.home");
-				String pastaCadastro = "Cadastro de Alunos";
-				String caminhoDiretorio = userHome + File.separator + "Desktop" + File.separator + pastaCadastro;
-				String caminhoArquivo = caminhoDiretorio + File.separator + "alunos_cadastrados.txt";
-				alunoService.exportarAlunosParaArquivo(caminhoArquivo, caminhoDiretorio, userHome, pastaCadastro);
-				break;
-			case 0:
-				System.out.println("\nFinalizando consulta\n");
-				return;
-			default:
-				System.out.println("\nOpção inválida. Por favor, tente novamente.\n");
+					break;
+
+				case 3:
+					System.out.print("Digite o nome do aluno: ");
+					String nome = scanner.nextLine();
+					List<Aluno> alunosPorNome = alunoService.consultarAlunoPorNome(nome);
+					if (alunosPorNome.isEmpty()) {
+						System.out.println("\nAluno não encontrado.\n");
+					} else {
+						for (Aluno aluno : alunosPorNome) {
+							System.out.println(aluno);
+						}
+					}
+					break;
+
+				case 4:
+					String userHome = System.getProperty("user.home");
+					String pastaCadastro = "Cadastro de Alunos";
+					String caminhoDiretorio = userHome + File.separator + "Desktop" + File.separator + pastaCadastro;
+					String caminhoArquivo = caminhoDiretorio + File.separator + "Lista de Alunos Cadastrados";
+					alunoService.exportarAlunosParaArquivo(caminhoArquivo);
+					break;
+
+				case 0:
+					System.out.println("\nFinalizando consulta\n");
+					return;
+
+				default:
+					System.out.println("\nOpção inválida. Por favor, tente novamente.\n");
 			}
 		}
 	}
 
+	// ========================= ALTERAR =========================
+
 	public static void alterar() {
 		System.out.print("************************** Menu Alterar Cadastro *****************************\n");
 		System.out.print("\nDigite a matrícula do aluno que deseja alterar: ");
-		int matricula = scanner.nextInt();
-		scanner.nextLine(); // Consumir a nova linha
+
+		int matricula;
+		try {
+			matricula = scanner.nextInt();
+			scanner.nextLine();
+		} catch (InputMismatchException e) {
+			System.out.println("Entrada inválida. Matrícula deve ser um número.");
+			scanner.nextLine();
+			return;
+		}
 
 		Aluno alunoExistente = alunoService.consultarAlunoPorMatricula(matricula);
 		if (alunoExistente == null) {
@@ -276,13 +349,6 @@ public class CadastroAluno {
 		}
 
 		System.out.println("\nAlterando dados do cadastro do aluno: " + alunoExistente.getNomeAluno());
-
-		String nomeAluno = alunoExistente.getNomeAluno();
-		LocalDate dataNascimento = alunoExistente.getDataNascimento();
-		double nota1 = alunoExistente.getNota1();
-		double nota2 = alunoExistente.getNota2();
-		int classe = alunoExistente.getClasse();
-		String turma = alunoExistente.getTurma();
 
 		while (true) {
 			System.out.println("\nDigite a opção para alteração de cadastro:");
@@ -294,50 +360,64 @@ public class CadastroAluno {
 			System.out.println("- Digite (6) Alterar Turma");
 			System.out.println("- Digite (0) Finalizar alteração");
 			System.out.print("=> ");
-			int opcao = scanner.nextInt();
-			scanner.nextLine(); // Consumir a nova linha
 
-			String mensagemAlteracao = ""; // Variável para armazenar a mensagem de alteração genérica
-
-			switch (opcao) {
-			case 1:
-				nomeAluno = cadastrarNomeAluno(nomeAlunoTeste);
-				mensagemAlteracao = "\nNome do aluno alterado com sucesso.\n";
-				break;
-			case 2:
-				dataNascimento = cadastrarDataNascimento(dataNascimentoStr);
-				mensagemAlteracao = "\nData de nascimento alterada com sucesso.\n";
-				break;
-			case 3:
-				nota1 = cadastrarNota("\nDigite a nova nota 1 (entre 0 e 10): ", notaDigitadaAluno);
-				mensagemAlteracao = "Nota 1 alterada com sucesso.";
-				break;
-			case 4:
-				nota2 = cadastrarNota("\nDigite a nova nota 2 (entre 0 e 10): ", notaDigitadaAluno);
-				mensagemAlteracao = "Nota 2 alterada com sucesso.";
-				break;
-			case 5:
-				classe = cadastrarClasse(classeAluno);
-				mensagemAlteracao = "\nClasse alterada com sucesso.\n";
-				break;
-			case 6:
-				turma = cadastrarTurma(turmaAluno);
-				mensagemAlteracao = "\nTurma alterada com sucesso.\n";
-				break;
-			case 0:
-				System.out.println("\nSaindo do menu de alterações \n");
-				return;
-			default:
-				System.out.println("\nOpção inválida. Por favor, tente novamente.");
+			int opcao;
+			try {
+				opcao = scanner.nextInt();
+				scanner.nextLine();
+			} catch (InputMismatchException e) {
+				System.out.println("Entrada inválida. Digite um número.");
+				scanner.nextLine();
 				continue;
 			}
 
-			Aluno alunoAlterado = new Aluno(nomeAluno, dataNascimento, nota1, nota2, classe, turma);
-			alunoAlterado.calcularMedia(nota1, nota2);
-			alunoAlterado.determinarSituacao(situacao, media);
-			alunoAlterado.setMatricula(matricula);
+			String mensagemAlteracao;
 
-			if (alunoService.alterarAluno(alunoAlterado)) {
+			switch (opcao) {
+				case 1:
+					alunoExistente.setNomeAluno(cadastrarNomeAluno(null));
+					mensagemAlteracao = "\nNome do aluno alterado com sucesso.\n";
+					break;
+
+				case 2:
+					alunoExistente.setDataNascimento(cadastrarDataNascimento(null));
+					mensagemAlteracao = "\nData de nascimento alterada com sucesso.\n";
+					break;
+
+				case 3:
+					alunoExistente.setNota1(cadastrarNota("\nDigite a nova nota 1 (entre 0 e 10): ", -1));
+					mensagemAlteracao = "Nota 1 alterada com sucesso.";
+					break;
+
+				case 4:
+					alunoExistente.setNota2(cadastrarNota("\nDigite a nova nota 2 (entre 0 e 10): ", -1));
+					mensagemAlteracao = "Nota 2 alterada com sucesso.";
+					break;
+
+				case 5:
+					alunoExistente.setClasse(cadastrarClasse(null));
+					mensagemAlteracao = "\nClasse alterada com sucesso.\n";
+					break;
+
+				case 6:
+					alunoExistente.setTurma(cadastrarTurma(null));
+					mensagemAlteracao = "\nTurma alterada com sucesso.\n";
+					break;
+
+				case 0:
+					System.out.println("\nSaindo do menu de alterações \n");
+					return;
+
+				default:
+					System.out.println("\nOpção inválida. Por favor, tente novamente.");
+					continue;
+			}
+
+			// Compatível com seu Aluno atual: métodos SEM parâmetros
+			alunoExistente.calcularMedia();
+			alunoExistente.determinarSituacao();
+
+			if (alunoService.alterarAluno(alunoExistente)) {
 				System.out.println(mensagemAlteracao);
 			} else {
 				System.out.println("Erro ao alterar cadastro.");
@@ -345,11 +425,21 @@ public class CadastroAluno {
 		}
 	}
 
+	// ========================= EXCLUIR =========================
+
 	public static void excluir() {
 		System.out.print("************************** Menu Exclusão de Cadastros *******************************\n");
 		System.out.print("\nDigite a matrícula do aluno que deseja excluir: ");
-		int matricula = scanner.nextInt();
-		scanner.nextLine(); // Consumir a nova linha
+
+		int matricula;
+		try {
+			matricula = scanner.nextInt();
+			scanner.nextLine();
+		} catch (InputMismatchException e) {
+			System.out.println("Entrada inválida. Matrícula deve ser um número.");
+			scanner.nextLine();
+			return;
+		}
 
 		Aluno alunoExiste = alunoService.consultarAlunoPorMatricula(matricula);
 		if (alunoExiste != null) {
@@ -362,7 +452,7 @@ public class CadastroAluno {
 					+ classe + "º Ano" + " - Turma:" + turma);
 			System.out.println("\nDigite 'S' para Sim e 'N' para Não");
 			System.out.print("=> ");
-			String escolha = scanner.next();
+			String escolha = scanner.nextLine();
 
 			if (escolha.equalsIgnoreCase("S")) {
 				if (alunoService.excluirAluno(matricula)) {
