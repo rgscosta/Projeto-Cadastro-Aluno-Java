@@ -67,7 +67,6 @@ public class CadastroAlunoService {
         return false;
     }
 
-
     //Excluir o Aluno do cadastro
     public boolean excluirAluno(int matricula) {
         return alunos.removeIf(aluno -> aluno.getMatricula() == matricula);

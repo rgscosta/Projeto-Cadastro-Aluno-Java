@@ -16,9 +16,8 @@ import static model.ValidarCadastroAluno.*;
 
 public class CadastroAluno {
 
-    static Scanner scanner = new Scanner(System.in);
-    static CadastroAlunoService alunoService = new CadastroAlunoService();
-
+    public static final Scanner scanner = new Scanner(System.in);
+    public static final CadastroAlunoService alunoService = new CadastroAlunoService();
 
     public static void iniciarCadastroAluno() {
 

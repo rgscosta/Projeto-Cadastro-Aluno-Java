@@ -1,5 +1,7 @@
 package model;
 
+import service.CadastroMateriaService;
+
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 
@@ -16,10 +18,10 @@ public class CadastroMateriaAluno {
             System.out.print("************************** Menu de Cadastros de Materias **************************\n\n");
             System.out.println(
                     "- Digite (1) para cadastrar matéria do aluno\n" +
-                            "- Digite (2) para consultar matérias do aluno\n" +
-                            "- Digite (3) para alterar dados da matéria do aluno\n" +
-                            "- Digite (4) para excluir matéria do aluno\n" +
-                            "- Digite (0) para retornar ao menu anterior");
+                    "- Digite (2) para consultar matérias do aluno\n" +
+                    "- Digite (3) para alterar dados da matéria do aluno\n" +
+                    "- Digite (4) para excluir matéria do aluno\n" +
+                    "- Digite (0) para retornar ao menu anterior");
             System.out.print("=> ");
 
             try {
@@ -61,6 +63,11 @@ public class CadastroMateriaAluno {
         String professor;
         String nomeMateria;
         String resp;
+        String respUnidade;
+        Double notaPriUnidade = 0.0;
+        Double notaSegUnidade = 0.0;
+        Double notaTerUnidade = 0.0;
+        Double notaQuaUnidade = 0.0;
 
         int matricula = validarMatriculaDoAluno(0);
         Aluno aluno = CadastroAluno.alunoService.consultarAlunoPorMatricula(matricula);
@@ -80,8 +87,8 @@ public class CadastroMateriaAluno {
 
             // Validar se matéria já existe para este aluno
             boolean materiaJaExiste = false;
-            for (Materia m : aluno.getMaterias()) {
-                if (m.getNomeMateria().equalsIgnoreCase(nomeMateria)) {
+            for (Materia materia : aluno.getMaterias()) {
+                if (materia.getNomeMateria().equalsIgnoreCase(nomeMateria)) {
                     materiaJaExiste = true;
                     break;
                 }
@@ -94,10 +101,44 @@ public class CadastroMateriaAluno {
 
             //Cadastrando o professor da materia do aluno pela matricula
             professor = ValidarCadastroProfessor.cadastrarNomeProfessor(null);
+            //Cadastro das notas das unidades
 
-            Materia materia = new Materia(nomeMateria, professor);
+            System.out.print("Deseja cadastrar a nota da 1º unidade do aluno? (S/N): ");
+            respUnidade = scanner.nextLine();
+
+            if (respUnidade.equalsIgnoreCase("S") || respUnidade.equalsIgnoreCase("SIM")) {
+
+                notaPriUnidade = ValidarCadastroNota.cadastrarNota("primeira unidade");
+
+                System.out.print("Deseja cadastrar a nota da 2º unidade do aluno? (S/N): ");
+                respUnidade = scanner.nextLine();
+
+                if (respUnidade.equalsIgnoreCase("S") || respUnidade.equalsIgnoreCase("SIM")) {
+
+                    notaSegUnidade = ValidarCadastroNota.cadastrarNota("segunda unidade");
+
+                    System.out.print("Deseja cadastrar a nota da 3º unidade do aluno? (S/N): ");
+                    respUnidade = scanner.nextLine();
+
+                    if (respUnidade.equalsIgnoreCase("S") || respUnidade.equalsIgnoreCase("SIM")) {
+
+                        notaTerUnidade = ValidarCadastroNota.cadastrarNota("terceira unidade");
+
+                        System.out.print("Deseja cadastrar a nota da 4º unidade do aluno? (S/N): ");
+                        respUnidade = scanner.nextLine();
+
+                        if (respUnidade.equalsIgnoreCase("S") || respUnidade.equalsIgnoreCase("SIM")) {
+                            notaQuaUnidade = ValidarCadastroNota.cadastrarNota("quarta unidade");
+                        }
+                    }
+                }
+            }
+            //Cadastrando as materias com as notas e etc...
+            Materia materia = new Materia(nomeMateria, professor, notaPriUnidade, notaSegUnidade, notaTerUnidade, notaQuaUnidade);
+
             aluno.adicionarMateria(materia);
-            System.out.println("Matéria cadastrada com sucesso para o aluno: " + aluno.getNome() + "\n");
+            System.out.println("Matéria cadastrada com sucesso para o aluno: " + aluno.getNome() + " - Matrícula Matéria: " + materia.getMatriculaMateria() + " - Matéria: " + materia.getNomeMateria() + "\n");
+
 
             System.out.print("Deseja cadastrar outra matéria para esse aluno? (S/N): ");
             resp = scanner.nextLine();

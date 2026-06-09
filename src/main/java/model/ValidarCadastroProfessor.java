@@ -3,12 +3,10 @@ package model;
 import exception.NomeInvalidoException;
 import lombok.NonNull;
 
-import java.util.Scanner;
-
+import static model.CadastroAluno.scanner;
 
 public class ValidarCadastroProfessor {
 
-    static Scanner scanner = new Scanner(System.in);
 
     public static @NonNull String cadastrarNomeProfessor(String nomeProfessor) {
         while (true) {

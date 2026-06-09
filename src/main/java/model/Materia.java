@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class Materia {
 
-    private static int nextMatricula = 1;
+    private static int nextMatriculaMateria = 1;
 
     private Integer matriculaMateria;
     private String nomeMateria;
@@ -16,10 +16,16 @@ public class Materia {
     private Double notaTecUnidade;
     private Double notaQuaUnidade;
 
-    public Materia(String nomeMateria, String professorMateria) {
-        this.matriculaMateria = nextMatricula++;
+
+    public Materia(String nomeMateria, String professor, Double notaPriUnidade, Double notaSegUnidade, Double notaTerUnidade, Double notaQuaUnidade) {
+        this.matriculaMateria = nextMatriculaMateria++;
         this.nomeMateria = nomeMateria;
-        this.professorMateria = professorMateria;
+        this.professorMateria = professor;
+        // Notas começam como null (Em Andamento)
+        this.notaPriUnidade = notaPriUnidade;
+        this.notaSecUnidade = notaSegUnidade;
+        this.notaTecUnidade = notaTerUnidade;
+        this.notaQuaUnidade = notaQuaUnidade;
     }
 
     // comportamento: calcular média
@@ -43,27 +49,25 @@ public class Materia {
             soma += notaQuaUnidade;
             quantidade++;
         }
-// MESMA COISA QUE LINHAS 53
-//        if (quantidade == 0) {
-//            return 0;
-//        } else {
-//            return soma / quantidade;
-//        }
 
         return quantidade == 0 ? 0 : soma / quantidade;
     }
 
-    @Override
-    public String toString() {
-        return "Materia{" +
-                "matriculaMateria=" + matriculaMateria +
-                ", nomeMateria='" + nomeMateria + '\'' +
-                ", professorMateria='" + professorMateria + '\'' +
-                ", notaPriUnidade=" + notaPriUnidade +
-                ", notaSecUnidade=" + notaSecUnidade +
-                ", notaTecUnidade=" + notaTecUnidade +
-                ", notaQuaUnidade=" + notaQuaUnidade +
-                ", media=" + calcularMedia() +
-                '}';
+    public String situacaoAluno(){
+        // Verificar se as 4 notas estão cadastradas
+        if (notaPriUnidade == null || notaSecUnidade == null || notaTecUnidade == null || notaQuaUnidade == null) {
+            return "Em Andamento";
+        }
+
+        double media = calcularMedia();
+        if (media >= 7.0) {
+            return "Aprovado";
+        }
+        else if (media < 7.0 && media >= 3.5) {
+            return "Em Recuperação";
+        }
+        else {
+            return "Reprovado";
+        }
     }
 }

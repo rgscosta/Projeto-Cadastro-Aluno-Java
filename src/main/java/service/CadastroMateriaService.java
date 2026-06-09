@@ -13,19 +13,18 @@ public class CadastroMateriaService {
         this.materias = materias;
     }
 
-    public boolean verificarMateriasCadastradas(List<Materia> materias, String nomeMateria) {
+    public boolean verificarMateriasCadastradas(List<Materia> materias) {
         for (Materia materia : materias) {
-            if (materia.getNomeMateria().equalsIgnoreCase(nomeMateria)) {
+            if (materia.getNomeMateria().equalsIgnoreCase(materias.toString())) {
                 return true;
             }
         }
         return false;
     }
 
-
-    public void excluirMateriasAluno() {
-        materias.clear();
-
+    //Excluir o Aluno do cadastro
+    public boolean excluirMateriasAluno(int matriculaMateria) {
+        return materias.removeIf(materia -> materia.getMatriculaMateria() == matriculaMateria);
     }
 
     public void cadastrarMateriasAluno(Materia materia) {

@@ -23,7 +23,7 @@ public class ValidarCadastroMateria {
                 }
 
             } catch (NomeInvalidoException e) {
-                System.out.println("Entrada inválida. Por favor, digite um número válido.");
+                System.out.println(e.getMessage());
                 materiasAluno = null;
             }
         }
@@ -45,5 +45,4 @@ public class ValidarCadastroMateria {
             }
         }
     }
-
 }
