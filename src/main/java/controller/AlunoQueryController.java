@@ -1,13 +1,19 @@
-package model;
+package controller;
+
+import domain.Aluno;
+import domain.AlunoMateria;
+import domain.NotaUnidade;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.InputMismatchException;
 import java.util.List;
 
-import static model.CadastroAluno.alunoService;
-import static model.CadastroAluno.scanner;
+import static controller.AlunoController.alunoService;
+import static controller.AlunoController.scanner;
 
-public class ConsultarAluno {
+public class AlunoQueryController {
 
     public static void consultarAlunos() {
         while (true) {
@@ -16,7 +22,8 @@ public class ConsultarAluno {
             System.out.println("- Digite (1) para consultar todos os alunos");
             System.out.println("- Digite (2) para consultar por matrícula");
             System.out.println("- Digite (3) para consultar por nome");
-            System.out.println("- Digite (4) para exportar todos os alunos para arquivo");
+            System.out.println("- Digite (4) para exportar notas dos alunos para arquivo");
+            System.out.println("- Digite (5) para exportar notas dos alunos em CSV");
             System.out.println("- Digite (0) para voltar");
             System.out.print("=> ");
 
@@ -32,7 +39,7 @@ public class ConsultarAluno {
             }
             switch (consultaOpcao) {
                 case 1:
-                    List<Aluno> todosAlunos = alunoService.consultarAlunos();
+                    List<Aluno> todosAlunos = alunoService.consultarAlunosService();
                     if (todosAlunos.isEmpty()) {
                         System.out.println("\nNenhum aluno cadastrado na base de dados.\n");
                     } else {
@@ -47,7 +54,7 @@ public class ConsultarAluno {
                         int matricula = scanner.nextInt();
                         scanner.nextLine();
 
-                        Aluno alunoPorMatricula = alunoService.consultarAlunoPorMatricula(matricula);
+                        Aluno alunoPorMatricula = alunoService.consultarAlunoPorMatriculaService(matricula);
                         if (alunoPorMatricula == null) {
                             System.out.println("\nAluno não encontrado.\n");
                         } else {
@@ -61,7 +68,7 @@ public class ConsultarAluno {
                 case 3:
                     System.out.print("Digite o nome do aluno: ");
                     String nome = scanner.nextLine();
-                    List<Aluno> alunosPorNome = alunoService.consultarAlunoPorNome(nome);
+                    List<Aluno> alunosPorNome = alunoService.consultarAlunoPorNomeService(nome);
                     if (alunosPorNome.isEmpty()) {
                         System.out.println("\nAluno não encontrado.\n");
                     } else {
@@ -74,8 +81,8 @@ public class ConsultarAluno {
                     String userHome = System.getProperty("user.home");
                     String pastaCadastro = "Cadastro de Alunos";
                     String caminhoDiretorio = userHome + File.separator + "Desktop" + File.separator + pastaCadastro;
-                    String caminhoArquivo = caminhoDiretorio + File.separator + "Lista de Alunos Cadastrados";
-                    alunoService.exportarAlunosParaArquivo(caminhoArquivo);
+                    String caminhoArquivo = caminhoDiretorio + File.separator + "Notas dos Alunos";
+                    alunoService.exportarNotasParaArquivoService(caminhoArquivo);
                     break;
                 case 0:
                     System.out.println("\nFinalizando consulta\n");
@@ -85,6 +92,41 @@ public class ConsultarAluno {
             }
         }
     }
+    public void exportarNotasParaCSVService(String caminhoArquivo) {
+        File arquivo = new File(caminhoArquivo + ".csv");
+
+        try (PrintWriter writer = new PrintWriter(arquivo)) {
+            // Cabeçalho CSV
+            writer.println("Matricula;Aluno;Materia;Professor;Nota1;Nota2;Nota3;Nota4;Media;Situacao");
+
+            for (Aluno aluno : alunoService.consultarAlunosService()) {
+                if (aluno.getMaterias().isEmpty()) {
+                    writer.println(aluno.getMatricula() + ";" + aluno.getNome() + ";Nenhuma matéria;;;;;;;");
+                } else {
+                    for (AlunoMateria am : aluno.getMaterias()) {
+                        NotaUnidade nota = am.getNota();
+                        writer.println(
+                                aluno.getMatricula() + ";" +
+                                        aluno.getNome() + ";" +
+                                        am.getMateria().getNome() + ";" +
+                                        am.getMateria().getProfessor().getNome() + ";" +
+                                        (nota.getPrimeiraUnidade() != null ? nota.getPrimeiraUnidade() : "") + ";" +
+                                        (nota.getSegundaUnidade() != null ? nota.getSegundaUnidade() : "") + ";" +
+                                        (nota.getTerceiraUnidade() != null ? nota.getTerceiraUnidade() : "") + ";" +
+                                        (nota.getQuartaUnidade() != null ? nota.getQuartaUnidade() : "") + ";" +
+                                        nota.calcularMedia() + ";" +
+                                        nota.situacaoAluno()
+                        );
+                    }
+                }
+            }
+
+            System.out.println("Notas exportadas em CSV para: " + arquivo.getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            System.out.println("Erro ao exportar CSV: " + e.getMessage());
+        }
+    }
+
 
 }
 

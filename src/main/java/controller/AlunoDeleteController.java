@@ -1,11 +1,13 @@
-package model;
+package controller;
+
+import domain.Aluno;
 
 import java.util.InputMismatchException;
 
-import static model.CadastroAluno.alunoService;
-import static model.CadastroAluno.scanner;
+import static controller.AlunoController.alunoService;
+import static controller.AlunoController.scanner;
 
-public class ExcluirAluno {
+public class AlunoDeleteController {
 
     public static void excluirAlunos() {
         System.out.print("************************** Menu Exclusão de Cadastros *******************************\n");
@@ -21,7 +23,7 @@ public class ExcluirAluno {
             return;
         }
 
-        Aluno alunoExiste = alunoService.consultarAlunoPorMatricula(matricula);
+        Aluno alunoExiste = alunoService.consultarAlunoPorMatriculaService(matricula);
         if (alunoExiste != null) {
             String nomeAluno = alunoExiste.getNome();
             Integer maticulaAluno = alunoExiste.getMatricula();
@@ -35,7 +37,7 @@ public class ExcluirAluno {
             String escolha = scanner.nextLine();
 
             if (escolha.equalsIgnoreCase("S")) {
-                if (alunoService.excluirAluno(matricula)) {
+                if (alunoService.excluirAlunoService(matricula)) {
                     System.out.println("\nAluno excluído com sucesso.\n");
                 } else {
                     System.out.println("\nErro ao excluir o aluno.\n");

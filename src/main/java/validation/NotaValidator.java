@@ -1,10 +1,10 @@
-package model;
+package validation;
 
-import static model.CadastroAluno.scanner;
+import static controller.AlunoController.scanner;
 
-public class ValidarCadastroNota {
+public class NotaValidator {
 
-    public static Double cadastrarNota(String unidade) {
+    public static Double adicionarNotasUnidades(String unidade) {
         while (true) {
             try {
                 System.out.print("Digite a nota da " + unidade + " (0 a 10): ");

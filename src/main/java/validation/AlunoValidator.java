@@ -1,7 +1,7 @@
-package model;
+package validation;
 
-import exception.NomeInvalidoException;
-import exception.TurmaInvalidaException;
+import exception.InvalidClassroomException;
+import exception.InvalidNameException;
 import lombok.NonNull;
 
 import java.time.LocalDate;
@@ -10,12 +10,12 @@ import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
 import java.util.regex.Pattern;
 
-import static model.CadastroAluno.scanner;
+import static controller.AlunoController.scanner;
 
 
-public class ValidarCadastroAluno {
+public class AlunoValidator {
 
-    public static @NonNull String cadastrarNomeAlunos(String nomeAluno) {
+    public static @NonNull String adicionarNomeAlunos(String nomeAluno) {
         while (true) {
             try {
                 if (nomeAluno == null || nomeAluno.trim().isEmpty()) {
@@ -26,18 +26,18 @@ public class ValidarCadastroAluno {
                 if (nomeAluno.matches("[A-Za-zÀ-ú ]+")) {
                     return nomeAluno.trim();
                 } else {
-                    throw new NomeInvalidoException(
+                    throw new InvalidNameException(
                             "\nNome inválido. Por favor, digite um nome que contenha apenas letras.\n");
                 }
 
-            } catch (NomeInvalidoException e) {
+            } catch (InvalidNameException e) {
                 System.out.println(e.getMessage());
                 nomeAluno = null; // força pedir de novo
             }
         }
     }
 
-    public static LocalDate cadastrarDataNascimento(String dataNascimentoStr) {
+    public static LocalDate adicionarDataNascimento(String dataNascimentoStr) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         Pattern datePattern = Pattern.compile("\\d{2}/\\d{2}/\\d{4}");
 
@@ -67,7 +67,7 @@ public class ValidarCadastroAluno {
         }
     }
 
-    public static String cadastrarTurma(String turmaAluno) {
+    public static String adicionarTurma(String turmaAluno) {
         while (true) {
             try {
                 if (turmaAluno == null || turmaAluno.trim().isEmpty()) {
@@ -79,16 +79,16 @@ public class ValidarCadastroAluno {
                 if (turma.matches("[A-Za-zÀ-ú]") && turma.length() == 1) {
                     return turma.toUpperCase();
                 } else {
-                    throw new TurmaInvalidaException("Turma inválida. Por favor, digite apenas uma letra. ex:(A, B, C..)");
+                    throw new InvalidClassroomException("Turma inválida. Por favor, digite apenas uma letra. ex:(A, B, C..)");
                 }
-            } catch (TurmaInvalidaException e) {
+            } catch (InvalidClassroomException e) {
                 System.out.println(e.getMessage());
                 turmaAluno = null;
             }
         }
     }
 
-    public static int selecionarTipoEnsino() {
+    public static int adicionarTipoEnsino() {
         while (true) {
             System.out.println("** Cadastro do tipo do ensino do Aluno **");
             System.out.println("- Digite (1) para Ensino Fundamental (1º ao 9º)");
@@ -112,7 +112,7 @@ public class ValidarCadastroAluno {
         }
     }
 
-    public static int cadastrarClasse(Integer tipoEnsino) {
+    public static int adicionarClasse(Integer tipoEnsino) {
         while (true) {
             try {
                 System.out.print("Digite a classe/Anoº do aluno: ");

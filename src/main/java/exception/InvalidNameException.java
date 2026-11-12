@@ -1,9 +1,9 @@
 package exception;
 
-public class NomeInvalidoException extends Exception {
+public class InvalidNameException extends Exception {
     private static final long serialVersionUID = -7805251706088653847L;
 
-    public NomeInvalidoException(String message) {
+    public InvalidNameException(String message) {
         super(message);
     }
 }
